@@ -49,6 +49,7 @@ def main():
                 with open(current_file, "wb") as f:
                     f.write(r.content)
                     unzip_completed_file(current_file)
+                os.remove(current_file)
         except requests.exceptions.HTTPError as err:
             logger.error(f"{err}")
             break
