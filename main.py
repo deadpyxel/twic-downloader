@@ -40,11 +40,39 @@ def request_new_file(session: requests.Session, file_id: int):
         logger.error("Too many redirects, check if TWIC has been moved")
     except requests.exceptions.RequestException as e:
         logger.error(f"There has been an error with your request: {e}")
-            break
-    else:
-        logger.success("Batch download finished succesfully.")
-        logger.info("Removing uneeded files...")
-        cleanup()
+
+
+async def get_data_batch(batch_start: int, batch_end: int):
+    with ThreadPoolExecutor(max_workers=32) as executor:
+        with requests.Session() as session:
+            evt_loop = asyncio.get_event_loop()
+            tasks = [
+                evt_loop.run_in_executor(executor, *(session, file_id))
+                for file_id in range(batch_start, batch_end)
+            ]
+            for response in await asyncio.gather(*tasks):
+                pass
+
+
+def execute_download(batch_start: int, batch_end: int):
+    future_results = asyncio.ensure_future(get_data_batch(batch_start, batch_end))
+    evt_loop = asyncio.get_event_loop()
+    evt_loop.run_until_complete(future_results)
+    return True
+
+
+def main():
+    lg = logger.add(
+        "events.log",
+        rotation="25 MB",
+        compression="zip",
+        format="{time} {level} {message}",
+        level="INFO",
+    )
+    start_time = time.time()
+    logger.info("Starting the script...")
+    execute_download(920, 925)
+    logger.success("Batch download finished succesfully.")
 
     logger.info(
         f"Finished. Done in {str(timedelta(seconds=(time.time() - start_time)))}."
