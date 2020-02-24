@@ -1,14 +1,21 @@
 import time
 from datetime import timedelta
-from tqdm import tqdm
+from zipfile import ZipFile
 
 import requests
 from loguru import logger
+from tqdm import tqdm
 
 BASE_URL = "https://www.theweekinchess.com/zips/"
 headers = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0",
 }
+
+
+def unzip_completed_file(file_name: str):
+    pgn_filename = f"{file_name.split('g')[0]}.pgn"
+    with ZipFile(file_name) as zip_f:
+        zip_f.extract(pgn_filename)
 
 
 def main():
@@ -21,7 +28,7 @@ def main():
     )
     start_time = time.time()
     logger.info("Starting the script...")
-    for i in tqdm(range(920, 1320)): # current available range of TWIC
+    for i in tqdm(range(920, 1320)):  # current available range of TWIC
         try:
             current_file = f"twic{i:03d}g.zip"
             current_url = f"{BASE_URL}{current_file}"
@@ -31,6 +38,7 @@ def main():
             if r.status_code == requests.codes.ok:
                 with open(current_file, "wb") as f:
                     f.write(r.content)
+                    unzip_completed_file(current_file)
         except requests.exceptions.HTTPError as err:
             logger.error(f"{err}")
         except requests.exceptions.Timeout:
