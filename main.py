@@ -47,8 +47,10 @@ async def get_data_batch(batch_start: int, batch_end: int):
         with requests.Session() as session:
             evt_loop = asyncio.get_event_loop()
             tasks = [
-                evt_loop.run_in_executor(executor, *(session, file_id))
-                for file_id in range(batch_start, batch_end)
+                evt_loop.run_in_executor(
+                    executor, request_new_file, *(session, file_id)
+                )
+                for file_id in tqdm(range(batch_start, batch_end))
             ]
             for response in await asyncio.gather(*tasks):
                 pass
