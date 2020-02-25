@@ -24,7 +24,7 @@ def unzip_completed_file(file_name: str):
 def request_new_file(session: requests.Session, file_id: int):
     current_file = f"twic{file_id:03d}g.zip"
     current_url = f"{BASE_URL}{current_file}"
-    r = requests.get(current_url, headers=headers)
+    r = session.get(current_url)
     r.raise_for_status()
     try:
         if r.status_code == requests.codes.ok:
@@ -45,6 +45,7 @@ def request_new_file(session: requests.Session, file_id: int):
 async def get_data_batch(batch_start: int, batch_end: int):
     with ThreadPoolExecutor(max_workers=32) as executor:
         with requests.Session() as session:
+            session.headers = headers
             evt_loop = asyncio.get_event_loop()
             tasks = [
                 evt_loop.run_in_executor(
