@@ -43,6 +43,16 @@ def request_new_file(session: requests.Session, file_id: int):
 
 
 async def get_data_batch(batch_start: int, batch_end: int):
+    """Asynchronously download the batch of data desired.
+
+    We use Threadpool to spawn the requests
+
+    each file has an id, that is passed to the executor
+    
+    Arguments:
+        batch_start {int} -- starting index for the batch 
+        batch_end {int} -- ending index for the batch
+    """
     with ThreadPoolExecutor(max_workers=32) as executor:
         with requests.Session() as session:
             session.headers = headers
@@ -58,6 +68,12 @@ async def get_data_batch(batch_start: int, batch_end: int):
 
 
 def execute_download(batch_start: int, batch_end: int):
+    """Main caller
+    
+    Arguments:
+        batch_start {int} -- [description]
+        batch_end {int} -- [description]
+    """
     future_results = asyncio.ensure_future(get_data_batch(batch_start, batch_end))
     evt_loop = asyncio.get_event_loop()
     evt_loop.run_until_complete(future_results)
@@ -74,7 +90,7 @@ def main():
     )
     start_time = time.time()
     logger.info("Starting the script...")
-    execute_download(920, 925)
+    execute_download(920, 921)
     logger.success("Batch download finished succesfully.")
 
     logger.info(
